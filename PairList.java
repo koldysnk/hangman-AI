@@ -11,6 +11,7 @@ public class PairList
       size = 0;
    }
 
+   //adds a letter with no duplicates
    public void addLetter(String l) {
       int i = 0;
       while(i < size && !pairs.get(i).key().equals(l))
@@ -28,10 +29,12 @@ public class PairList
       }
    }
    
+   //returns the size
    public int size(){
       return size;
    }
    
+   //gets the key at index index
    public String get(int index) {
       return pairs.get(index).key();
    }

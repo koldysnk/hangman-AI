@@ -5,6 +5,7 @@ public class Word{
    private String[] word;
    private int size;
 
+   //creates a word from string
    public Word(String s) {
       size = s.length();
       word = new String[size];
@@ -12,6 +13,7 @@ public class Word{
          word[i] = s.substring(i,i+1);
    }
    
+   //creates a word that consists of blanks
    public Word(int len) {
       word = new String[len];
       size = len;
@@ -19,6 +21,7 @@ public class Word{
          word[i] = "_";
    }
    
+   //changes the letter at index to str
    public boolean indexTo(int index, String str) {
       if (index > size || index < 0 || str == null || str.length() > 1) 
          return false;
@@ -26,14 +29,17 @@ public class Word{
       return true;
    }
    
+   //returns the value at index
    public String getIndex(int index) {
       return word[index];
    }
    
+   //returns the length of the word
    public int getSize() {
       return size;
    }
    
+   //checks if there are any blanks in the word
    public boolean complete() {
       for (int i = 0; i < size; i++) {
          if(word[i].equals("_"))
@@ -42,6 +48,7 @@ public class Word{
       return true;
    }
    
+   //returns a list of the blank indexes
    public ArrayList<String> getValidIndex() {
       ArrayList<String> str = new ArrayList<String>();
       for (int i = 0; i < size; i++) {
@@ -52,6 +59,7 @@ public class Word{
       
    }
    
+   //checks if Word w is a partial match of this
    public boolean partMatch(Word w) {
       if (size != w.getSize())
          return false;
@@ -65,10 +73,12 @@ public class Word{
       return true;
    }
    
+   //checcks if the words match exactly
    public boolean exactMatch(Word word) {
       return this.toString().equals(word.toString());
    }
    
+   //checks to see if this word contains the string
    public boolean contains(String str) {
       for (int i = 0; i < size; i++) {
          if(word[i].equals(str))
@@ -77,6 +87,7 @@ public class Word{
       return false;
    }
    
+   //converts the word to a string
    public String toString() {
       String str= "Word:  ";
       for (int i = 0; i < size; i++) {
@@ -98,6 +109,7 @@ public class Word{
       return str;
    }
    
+   //checks to see how many times a letter occurs
    private int iterations(String let) {
       int count=0;
       for (int i = 0; i < size; i++) {

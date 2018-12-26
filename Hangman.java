@@ -5,23 +5,22 @@ public class Hangman {
 
 	//data
    public static ArrayList<Word> dictionary;
+   public static final int NUMTESTS = 10000;
+   public static ArrayList<String> losses;
 
-   public static void main(String[] args) {
-   /***********Word tests*************
-      Word word = new Word(4);
-      System.out.println(word.toString());
-      word.indexTo(3,"c");
-      System.out.println(word.toString());
-      word.indexTo(2,"b");
-      System.out.println(word.toString());
-      word.indexTo(0,"a");
-      System.out.println(word.toString());
-   ***********************************/      
+   public static void main(String[] args) { 
+      loadDictionary();   
+      losses = new ArrayList<String>();
       startGame();
+      /*************Testing**********************
+      for (int i = 0; i < 100; i++) 
+         testGame();
+      testEach();
+      *******************************************/
    }
 	
-   public static void startGame() {
-      loadDictionary();   
+   //The user thinks of a word and the computer tries to guess the word in less than 10 incorrect guesses.
+   public static void startGame() {   
       Scanner s = new Scanner(System.in);
       boolean cont = true;
       do {
@@ -95,19 +94,123 @@ public class Hangman {
       System.out.println("Thanks for Playing!");
    }
    
+   //This method runs tests and provids win statistics on random words.
+   public static void testGame() {
+      int numWins = 0;
+      int numGuesses = 0;
+      for (int t = 0; t < NUMTESTS; t++) {
+         //Choose word
+         Word correctWord = dictionary.get((int)(Math.random()*dictionary.size()));
+         int length = correctWord.getSize();
+         Word word = new Word(length);
+         //Make Guesses
+         int guesses = 10;
+         boolean match = false;
+         String used = "";
+         //displayStatus(guesses, word, match);
+         ArrayList<Word> potentials = removeWrongLength(dictionary, length);
+         while (guesses > 0 && !match) {
+            String guess = guess(potentials,used);
+            used += guess;
+            //Check guess
+            if(correctWord.contains(guess)){
+               for(int i = 0; i < length; i++){
+                  if(correctWord.getIndex(i).equals(guess))
+                     word.indexTo(i,guess);
+               }
+               potentials = keepLetter(potentials, guess, word);
+            } else {
+               guesses--;
+               potentials = removeLetter(potentials, guess, word);               
+            }
+            if(word.complete())
+               match = true;
+         }
+         if (match){
+            numWins++;
+            numGuesses+= 10-guesses;
+         } else{
+            //losses.add(correctWord);
+         }
+      }
+      //Prints test results
+      System.out.println("Total tests: "+NUMTESTS);
+      System.out.println("Total wins: "+numWins);
+      System.out.println("Total losses: "+(NUMTESTS-numWins));   
+      System.out.println("Win percentage: "+(((double)numWins/(double)NUMTESTS)*100)+"%");
+      System.out.println("Average number of guesses before win: "+(numGuesses/numWins)+"\n");
+      
+      
+   }
+      
+   //This method runs tests and provids win statistics on entire dictionary.
+   public static void testEach() {
+      int numWins = 0;
+      int numGuesses = 0;
+      for (int t = 0; t < dictionary.size(); t++) {
+         //Choose word
+         Word correctWord = dictionary.get(t);
+         int length = correctWord.getSize();
+         Word word = new Word(length);
+         //Make Guesses
+         int guesses = 10;
+         boolean match = false;
+         String used = "";
+         //displayStatus(guesses, word, match);
+         ArrayList<Word> potentials = removeWrongLength(dictionary, length);
+         while (guesses > 0 && !match) {
+            String guess = guess(potentials,used);
+            used += guess;
+            //Check guess
+            if(correctWord.contains(guess)){
+               for(int i = 0; i < length; i++){
+                  if(correctWord.getIndex(i).equals(guess))
+                     word.indexTo(i,guess);
+               }
+               potentials = keepLetter(potentials, guess, word);
+            } else {
+               guesses--;
+               potentials = removeLetter(potentials, guess, word);               
+            }
+            if(word.complete())
+               match = true;
+         }
+         if (match){
+            numWins++;
+            numGuesses+= 10-guesses;
+         } else{
+            String lostWord = "";
+            for (int i = 0; i<length; i++)
+               lostWord += correctWord.getIndex(i);
+            losses.add(lostWord);
+         }
+      }
+      //Prints test results
+      System.out.println("Total tests: "+dictionary.size());
+      System.out.println("Total wins: "+numWins);
+      System.out.println("Total losses: "+(dictionary.size()-numWins));   
+      System.out.println("Win percentage: "+(((double)numWins/(double)dictionary.size())*100)+"%");
+      System.out.println("Average number of guesses before win: "+(numGuesses/numWins));
+      System.out.println("Words that are not guessed: "+Arrays.toString(losses.toArray())+"\n");
+      
+   }
+
+   
+   //This method reads from the dictionary and populates the list of potential words. 
    public static void loadDictionary() {
       dictionary = new ArrayList<Word>();
       try {
-      File file = new File("dictionary.txt"); 
-      BufferedReader br = new BufferedReader(new FileReader(file)); 
-      String str;
-      while ((str = br.readLine()) != null)
-         dictionary.add(new Word(str.toLowerCase()));
+         File file = new File("dictionary.txt"); 
+         BufferedReader br = new BufferedReader(new FileReader(file)); 
+         String str;
+         while ((str = br.readLine()) != null)
+            dictionary.add(new Word(str.toLowerCase()));
       } catch(Exception e) {
          System.out.println("ERROR: NO DICTIONARY WAS READ");
       }
    }
-   
+    
+   //This method removes all of the words that do not match the desired length.
    public static ArrayList<Word> removeWrongLength(ArrayList<Word> list,int len) {
       ArrayList<Word> temp = list;
       for (int i = temp.size()-1; i >= 0; i--) {
@@ -118,6 +221,7 @@ public class Hangman {
       return temp;
    }
    
+   //This method removes the words containing the provided incorecctly guessed letter.
    public static ArrayList<Word> removeLetter(ArrayList<Word> list,String let, Word word) {
       ArrayList<Word> temp = new ArrayList<Word>();
       for (int i = list.size()-1; i >= 0; i--) {
@@ -128,6 +232,7 @@ public class Hangman {
       return temp;
    }
    
+   //This method removes all words that do not math the word updated with the correctly guessed letter.
    public static ArrayList<Word> keepLetter(ArrayList<Word> list,String let, Word word) {
       ArrayList<Word> temp = new ArrayList<Word>();
       for (int i = list.size()-1; i >= 0; i--) {
@@ -138,6 +243,7 @@ public class Hangman {
       return temp;
    }
    
+   //This method prints the status of the game after the computer's last guess.
    public static void displayStatus(int g, Word w, boolean win) {
       //Add function for displaying hangman
       System.out.println(w);
@@ -150,6 +256,7 @@ public class Hangman {
          System.out.println("The computer will make a guess.");
    }
    
+   //This method decides which letter the computer should guess based on the previous guesses.
    public static String guess(ArrayList<Word> list, String used) {
       String guess = "";
       PairList pList = new PairList();
